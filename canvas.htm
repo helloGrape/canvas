@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>canvas</title>
+    <meta charset="utf-8">
+    <script src="jquery.min.js" type="text/javascript"></script>
+    <script src="drawobj.js" type="text/javascript"></script>
+</head>
+<body>
+<hr />
+<div style="position: relative;">
+    <video  width="900" height="700" id="myVideo">
+        <source src="Wildlife.mp4" >
+    </video>
+    <input type="button" onclick="play()" id="play" value="play"><br/>
+</div>
+<hr />
+</body>
+<script type="text/javascript">
+    /*定义要绘制的图形,测试数据*/
+    var DrawObjMap = {
+       "0": [
+            {
+                "FontSize": "12",
+                "Text": "直线",
+                "PointX0": 1500,
+                "PointY0": 1500,
+                "PointX1": 2100,
+                "PointY1": 2100,
+                "LineColor": "red",    //红色
+                "LineWidth": 2
+            }
+       ],
+        "1": [
+            {
+                "FontSize": "12",
+                "Text": "带箭头直线",
+                "PointX0": 1000,
+                "PointY0": 1000,
+                "PointX1": 4000,
+                "PointY1": 4000,
+                "LineColor": "red",    //红色
+                "LineWidth": 2,
+                "Direction": 0  //双向
+            },
+            {
+                "PointX0": 2000,
+                "PointY0": 2000,
+                "PointX1": 4500,
+                "PointY1": 4000,
+                "LineColor": "blue",
+                "LineWidth": 2,
+                "Direction": 1  //左侧
+            },
+            {
+                "PointX0": 3000,
+                "PointY0": 3000,
+                "PointX1": 5000,
+                "PointY1": 4000,
+                "LineColor": "yellow",
+                "LineWidth": 2,
+                "Direction": 2  //右侧
+            }
+        ],
+        "2": [
+            {
+                "FontSize": "12",
+                "Text": "矩形",
+                "LineColor": "red",    //红色
+                "LineWidth": 2,
+                "Left": 200,
+                "Top": 200,
+                "Right": 1200,
+                "Bottom": 1200
+            },
+            {
+                "LineColor": "blue",
+                "LineWidth": "2",
+                "Left": 500,
+                "Top": 500,
+                "Right": 1500,
+                "Bottom": 1500
+            }
+        ],
+       "3": [
+            {
+                "FontSize": "12",
+                "Text": "带箭头矩形",
+                "LineColor": "red",    //红色
+                "LineWidth": 2,
+                "Left": 1500,
+                "Top": 1500,
+                "Right": 3000,
+                "Bottom": 3000,
+                "Direction": 1
+            },
+            {
+                "LineColor": "blue",
+                "LineWidth": 2,
+                "Left": 4000,
+                "Top": 4000,
+                "Right": 5000,
+                "Bottom": 5000,
+                "Direction": 2
+            }
+       ],
+        "4": [
+            {
+                "FontSize": "12",
+                "Text": "多边形",
+                "PointX0": 6000,
+                "PointY0": 1000,
+                "PointX1": 2000,
+                "PointY1": 500,
+                "PointX2": 1100,
+                "PointY2": 1100,
+                "PointX3": 500,
+                "PointY3": 2000,
+                "PointX4": 3000,
+                "PointY4": 3000,
+                "LineColor": "red",    //红色
+                "LineWidth": 2
+                //  "Direction": "0"
+            }
+        ],
+        "5": [
+            {
+                "FontSize": "12",
+                "Text": "五边形",
+                "PointX0": 8000,
+                "PointY0": 2000,
+                "PointX1": 3000,
+                "PointY1": 1000,
+                "PointX2": 1500,
+                "PointY2": 1500,
+                "PointX3": 5000,
+                "PointY3": 3000,
+                "PointX4": 2000,
+                "PointY4": 2000,
+                "LineColor": "blue",
+                "LineWidth": 2,
+                "Direction": 1   //1:离开区域；2：进入区域
+            },
+            {
+                "FontSize": "12",
+                "Text": "五边形",
+                "PointX0": 7500,
+                "PointY0": 1500,
+                "PointX1": 2500,
+                "PointY1": 500,
+                "PointX2": 1000,
+                "PointY2": 1000,
+                "PointX3": 4500,
+                "PointY3": 2500,
+                "PointX4": 1500,
+                "PointY4": 1500,
+                "LineColor": "yellow",
+                "LineWidth": 2,
+                "Direction": 2   //1:离开区域；2：进入区域
+            }
+        ],
+        "6": [
+            {
+                "LineWidth": 2,
+                "LineColorIn": "blue",
+                "LineColorOut": "red",
+                "LeftIn": 1300,
+                "TopIn": 1700,
+                "RightIn": 3300,
+                "BottomIn": 3700,
+                "LeftOut": 800,
+                "TopOut": 1200,
+                "RightOut": 3800,
+                "BottomOut": 4200
+            }
+        ],/*,
+        "7": [
+            {
+                "LineColor": "red",
+                "PointX": 0,
+                "PointY": 0,
+                "Text": 1
+            },
+            {
+                "LineColor": "red",
+                "PointX": 0,
+                "PointY": 0,
+                "Text": 2
+            },
+            {
+                "LineColor": "red",
+                "PointX": 0,
+                "PointY": 0,
+                "Text": 3
+            },
+            {
+                "LineColor": "red",
+                "PointX": 0,
+                "PointY": 0,
+                "Text": 4
+            }
+        ],*/
+        "8": [
+            {
+                "LineColor": "green",
+                "FontSize": 12,
+                "Text": "区域1",
+                "LineWidth": "2",
+                "Left": 1500,
+                "Top": 1500,
+                "Right": 3000,
+                "Bottom": 3000,
+                "Fill": true,
+                "FillColor": "green"
+            },
+            {
+                "LineColor": "blue",
+                "FontSize": 12,
+                "Text": "区域2",
+                "LineWidth": "2",
+                "Left": 4000,
+                "Top": 4000,
+                "Right": 5000,
+                "Bottom": 5000,
+                "Fill": true,
+                "FillColor": "blue"
+            }
+        ],
+        "10": [
+            {
+                "PointX0": 1500,
+                "PointY0": 1500,
+                "PointX1": 4500,
+                "PointY1": 4500,
+                "LineColor": "black",    //红色
+                "LineWidth": "2",
+                "Direction": "0",  //双向
+                "VernierColor": "red",  //游标颜色
+                "ShowVernier": 0    //是否显示游标，0：不显示；1：显示
+            },
+            {
+                "PointX0": 2500,
+                "PointY0": 2500,
+                "PointX1": 5000,
+                "PointY1": 5000,
+                "PointX2": 2750,
+                "PointY2": 2750,
+                "PointX3": 4750,
+                "PointY3": 4750,
+                "LineColor": "green",
+                "LineWidth": "2",
+                "Direction": "1",  //左侧
+                "VernierColor": "red",  //游标颜色
+                "ShowVernier": 1    //是否显示游标，0：不显示；1：显示
+            },
+            {
+                "PointX0": 3500,
+                "PointY0": 3500,
+                "PointX1": 6000,
+                "PointY1": 6000,
+                "PointX2": 4500,
+                "PointY2": 4500,
+                "PointX3": 5000,
+                "PointY3": 5000,
+                "LineColor": "pink",
+                "LineWidth": "2",
+                "Direction": "2",  //右侧
+                "VernierColor": "black",  //游标颜色
+                "ShowVernier": 1    //是否显示游标，0：不显示；1：显示
+            }
+        ]
+    };
+
+    function play() {
+        var video = $("#myVideo").get(0);
+        if (video.paused) {
+            if (video.ended) video.currentTime = 0;
+            video.play();
+            $("#play").val("pause");
+        } else {
+            video.pause();
+            $("#play").val("play");
+        }
+    }
+    // 获得事件Event对象，用于兼容IE和FireFox
+    function getEvent() {
+        if(document.all) return window.event;
+        var func = getEvent.caller;
+        while(func != null) {
+
+            var arg0 = func.arguments[0];
+            if (arg0) {
+
+                if((arg0.constructor == Event || arg0.constructor == MouseEvent) ||
+                        (typeof arg0 == "object" && arg0.preventDefault && arg0.stopPropagation)) {
+                    return arg0;
+                }
+            }
+            func = func.caller;
+        }
+        return null;
+    }
+
+
+    function eventDrawObjParam(type, num, pos){
+        //alert(type + " " + num + " " + pos);
+    }
+
+    function eventSelDrawObj(type, num) {
+
+        canvas.SelDrawObj(type, num);
+    }
+
+    $(document).ready(function() {
+        play();
+        setTimeout(function(){
+            canvas = new DrawObj("myVideo", DrawObjMap);
+            canvas.ShowDrawObj(1, 0, 1);
+            canvas.ShowDrawObj(2, 1, 1);
+            canvas.ShowDrawObj(3, 0, 1);
+            canvas.ShowDrawObj(6, 0, 1);
+            canvas.ShowDrawObj(5, 1, 1);
+            canvas.ShowDrawObj(10, 0, 1);
+            canvas.ShowDrawObj(10, 1, 1);
+        }, 1000);
+
+    });
+</script>
+</html>
