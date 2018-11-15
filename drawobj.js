@@ -22,7 +22,7 @@ var DrawType = {
     INVALID: 0xFFFF
 };
 
-var MAX_POLYGON_POINTNUM = 6;
+var MAX_POLYGON_POINTNUM = 6;  // 多边形最多6
 var MIN_WIDTH = 10;
 
 
@@ -93,6 +93,7 @@ Line.prototype = {
 
 /*带箭头方向的直线*/
 var arrowLine = function (num, map) {
+    // todo 带箭头直线实际可以继承直线的属性和isDraoObjSel方法
     this.num = num;
     this.type = DrawType.LINE_ARROW;
     this.isShow = false;
@@ -244,7 +245,8 @@ CEZRect.prototype = {
         context.rect(this.map["Left"], this.map["Top"], (this.map["Right"] - this.map["Left"]), (this.map["Bottom"] - this.map["Top"]));
         context.stroke();
         context.closePath();
-
+        
+        // todo 每个类都有重复绘制文字的代码，可以设置一个图形基类，放到图形基类中，其他类继承图形基类
         if ("" != this.Text) {
             context.fillStyle = "black";  //画文字
             context.font = this.FontSize + "px sans-serif";
@@ -346,6 +348,7 @@ arrowRect.prototype = {
         }
     },
     isDrawObjSel: function (context, x, y) {
+        // todo 此处可以继承矩形的方法
         var flag;
 
         if (!this.isShow)return;
@@ -394,6 +397,9 @@ polygon.prototype = {
         context.strokeStyle = this.LineColor;
         context.lineWidth = this.LineWidth;
         context.moveTo(this.map["PointX0"], this.map["PointY0"]);
+        // todo <= 中的=控制正在绘制的多边形的正在画的那条动态边可以显示
+        // todo 没有正在绘制的多变形最后一个坐标点为 undefined 不过不受影响
+        // arrowPolygon中修正了该问题
         for (i = 1; i <= this.coordinateNum; i++) {
             context.lineTo(this.map["PointX" + i], this.map["PointY" + i]);
         }
@@ -419,7 +425,8 @@ polygon.prototype = {
         context.strokeStyle = "rgba(255,0,0,0)";
         context.lineWidth = this.LineWidth;
         context.moveTo(this.map["PointX0"], this.map["PointY0"]);
-        for (i = 1; i <= this.coordinateNum; i++) {
+        // todo 与createDrawObj同样的问题
+        for (i = 1; i < this.coordinateNum; i++) {
             context.lineTo(this.map["PointX" + i], this.map["PointY" + i]);
         }
         context.lineTo(this.map["PointX0"], this.map["PointY0"]);
@@ -468,10 +475,13 @@ arrowPolygon.prototype = {
         context.strokeStyle = this.LineColor;
         context.lineWidth = this.LineWidth;
         context.moveTo(this.map["PointX0"], this.map["PointY0"]);
-        for (i = 1; i <= this.coordinateNum; i++) {
+        for (i = 1; i < this.coordinateNum; i++) {
             context.lineTo(this.map["PointX" + i], this.map["PointY" + i]);
         }
-        if (!this.isDrawing) {    //若多边形正在重绘，则不闭合
+        if (this.isDrawing) {
+            context.lineTo(this.map["PointX" + this.coordinateNum], this.map["PointY" + this.coordinateNum]);
+        }else {
+            // 若多边形正在重绘，则不闭合
             context.lineTo(this.map["PointX0"], this.map["PointY0"]);
         }
         context.stroke();
@@ -488,6 +498,7 @@ arrowPolygon.prototype = {
             context.beginPath();
             context.translate(centerx, centery);
             context.rotate(radians);
+            // todo 此处可以合并
             if (flag && 1 == this.Direction) { //  离开区域
                 context.moveTo(0, 20);   //绘制箭头,箭头方向朝上
                 context.lineTo(0, -20);
@@ -543,7 +554,8 @@ arrowPolygon.prototype = {
         context.strokeStyle = "rgba(255,0,0,0)";
         context.lineWidth = this.LineWidth;
         context.moveTo(this.map["PointX0"], this.map["PointY0"]);
-        for (i = 1; i <= this.coordinateNum; i++) {
+        // todo 修正polygon中最后一个坐标undefined的问题
+        for (i = 1; i < this.coordinateNum; i++) {
             context.lineTo(this.map["PointX" + i], this.map["PointY" + i]);
         }
         context.lineTo(this.map["PointX0"], this.map["PointY0"]);
@@ -558,7 +570,9 @@ arrowPolygon.prototype = {
         var flag = false;  //标志鼠标位置是否在绘制多边形内
         context.save();
         context.beginPath();
-        context.strokeStyle = this.LineColor;
+        // context.strokeStyle = this.LineColor;
+        // todo 此处再次绘制只为判断点是否在图形上，需设置颜色为透明
+        context.strokeStyle = 'rgba(0,0,0,0)';
         context.lineWidth = this.LineWidth;
         context.moveTo(this.map["PointX0"], this.map["PointY0"]);
         for (var i = 1; i < this.coordinateNum; i++) {
@@ -623,7 +637,9 @@ concentricRect.prototype = {
         if ("" != this.Text) {
             context.fillStyle = "black";  //画文字
             context.font = this.FontSize + "px sans-serif";
-            context.fillText(this.Text, this.map["Left"], this.map["Top"]);
+            // todo Left Top为undefined
+            //context.fillText(this.Text, this.map["Left"], this.map["Top"]);
+            context.fillText(this.Text, this.map["LeftOut"], this.map["TopOut"]);
         }
     },
     isDrawObjSel: function (context, x, y) {           //判断鼠标位置是否在绘制图形内
@@ -665,6 +681,8 @@ point.prototype = {   //不用判断是否在当前路径内以选中
         if (!this.isShow)return;
         context.beginPath();
         context.strokeStyle = this.LineColor;
+        // todo lineWidth没加
+        context.lineWidth = this.LineWidth;
         context.moveTo(this.map["PointX"], this.map["PointY"]);
         context.lineTo(this.map["PointX"] - 5, this.map["PointY"] - 8);
         context.lineTo(this.map["PointX"] + 5, this.map["PointY"] - 8);
@@ -697,7 +715,7 @@ var title = function (num, map) {
     // 是否填充
     this.Fill = (("undefined" != typeof map["Fill"]) && !isNaN(map["Fill"]) && (1 == map["Fill"]));
 
-    // 线颜色
+    // todo 填充颜色
     this.FillColor = ("undefined" != typeof map["FillColor"]) ? map["FillColor"] : "";
 
     // 坐标信息
@@ -893,6 +911,7 @@ lineArrowVernier.prototype = {
         context.restore();
 
         //不在线上，则判断是否在游标上
+        // todo 判断游标之前，不需要重置bSelVernier vernierNum么
         if (!flag && (1 == this.ShowVernier)) {
             // 判断是否在第一个游标上
             context.beginPath();
@@ -964,7 +983,7 @@ var DrawObj = function (canvasPosId, drawObjInfoMap) {
     this.mouseDownY;             //鼠标按下坐标y
     this.changex;               //要拖动的图形坐标点（锚点的中心坐标x）
     this.changey;               //要拖动的图形坐标点（锚点的中心坐标y）
-    this.isReport = false;      // 是否需要上报坐标
+    this.isReport = false;      // 是否需要上报坐标（图形的坐标位置已发生变更）
 
     // 生成画布
     this.setCanvas();
@@ -974,6 +993,7 @@ var DrawObj = function (canvasPosId, drawObjInfoMap) {
 
     // 显示
     var that = this;
+    // todo 缺少销毁对象、清除定时器的方法
     setInterval(function () {
         that.reDraw(that);
     }, 40);
@@ -1002,6 +1022,7 @@ DrawObj.prototype = {
             this.drawMap[drawObjType] = [];
             for (index = 0, len = drawObjInfoList.length; index < len; index++) {
                 drawObjInfo = drawObjInfoList[index];
+                //todo anchorList挪到外面去写
                 this.anchorList = [];
                 switch (Number(drawObjType)) {
                     case 0:
@@ -1196,7 +1217,7 @@ DrawObj.prototype = {
         $canvas = $("#canvas_" + this.videoID);
         this.canvas = $canvas.get(0);
         this.ctx = this.canvas.getContext('2d');
-
+        // todo 目标对象开始选中时，禁止双击变蓝
         this.canvas.onselectstart = function () {
             return false;
         };
@@ -1224,6 +1245,7 @@ DrawObj.prototype = {
      * 改变画布大小使其适应窗口变化
      *
      * */
+    // todo that可以不必传入，用this即可
     changeCanvasSize: function (that) {
         that = that || this;
         var video = $("#" + that.videoID).get(0),
@@ -1248,7 +1270,7 @@ DrawObj.prototype = {
             that.canvas.width = video.width;
             that.canvas.height = video.width * (video.videoHeight / video.videoWidth);
         }
-
+        // todo canvasOld与that.canvas不是指向同一个对象？
         this.updateCoordinate(canvasOld, that.canvas);
     },
 
@@ -1503,7 +1525,7 @@ DrawObj.prototype = {
             distanceY = y - this.mouseDownY,
             drawOjbPosMap = this.currentC["map"],
             i;
-
+        //todo 这两句话相当于保存了前一次move的坐标结果，用作下一个move的前一个坐标值
         this.mouseDownX = x;
         this.mouseDownY = y;
 
@@ -1575,7 +1597,7 @@ DrawObj.prototype = {
         drawOjbPosMap = this.currentC["map"];
         pointNum = this.currentC["coordinateNum"];
 
-        // TODO 图形最新尺寸
+        // TODO 图形最小尺寸 移动距离太小不进行重绘
         if ("undefined" == typeof this.currentC["isDrawing"]) {  //非多边形
             if (Math.pow(Math.abs(x - this.mouseDownX), 2) + Math.pow(Math.abs(y - this.mouseDownY), 2) < Math.pow(MIN_WIDTH, 2)) return;
         }
@@ -1596,6 +1618,7 @@ DrawObj.prototype = {
                 break;
             case 4:
             case 5:
+                // 多边形
                 drawOjbPosMap["PointX" + pointNum] = x;
                 drawOjbPosMap["PointY" + pointNum] = y;
                 break;
@@ -1624,6 +1647,7 @@ DrawObj.prototype = {
                     centerX = (drawOjbPosMap["PointX0"] + drawOjbPosMap["PointX1"]) / 2;
                     centerY = (drawOjbPosMap["PointY0"] + drawOjbPosMap["PointY1"]) / 2;
                     if (2 == this.currentC.vernierNum) {  //选中点为2的游标
+                        // todo 游标绘制边界条件的处理
                         if (((centerX > drawOjbPosMap["PointX0"]) && (x > centerX)) ||
                             ((centerX <= drawOjbPosMap["PointX0"]) && (x < centerX))) {
                             drawOjbPosMap["PointX2"] = centerX;
@@ -1648,6 +1672,7 @@ DrawObj.prototype = {
                         }
                     }
                     else if (3 == this.currentC.vernierNum) {
+                        // todo 游标绘制边界条件的处理
                         if (((centerX > drawOjbPosMap["PointX1"]) && (x > centerX)) ||
                             ((centerX <= drawOjbPosMap["PointX1"]) && (x < centerX))) {
                             drawOjbPosMap["PointX2"] = centerX;
@@ -1673,6 +1698,7 @@ DrawObj.prototype = {
                     }
                 }
                 else {   //没有选中客流量线段的游标，则重新绘制
+                    // todo 原线段的两端横坐标重合，需要用纵坐标计算比例
                     if(drawOjbPosMap["PointX1"] == drawOjbPosMap["PointX0"]){
                         pro = (drawOjbPosMap["PointY2"] - drawOjbPosMap["PointY0"]) /
                             (drawOjbPosMap["PointY1"] - drawOjbPosMap["PointY0"]);
@@ -1892,7 +1918,7 @@ DrawObj.prototype = {
     /*设置鼠标样式*/
     setMouseStyle: function (x, y) {
         var style;
-
+        // todo (先将客流量线段的选中状态重置)这句话加在这里很奇怪 考虑换个位置
         if (this.currentC && 10 == this.currentC.type && this.currentC.bSelVernier) {  //客流量线段游标选中样式
             this.currentC.bSelVernier = false;
         }
@@ -1919,7 +1945,7 @@ DrawObj.prototype = {
 
         $(this.canvas).css("cursor", style);
     },
-
+    // todo 不需要用getEvent，直接捕获事件，将e传入函数即可
     doMousemove: function (that) {
         var _e = getEvent(),
             x = _e.clientX - that.canvas.getBoundingClientRect().left,
@@ -1939,13 +1965,16 @@ DrawObj.prototype = {
                     that.draw(x, y);
                     break;
             }
+            // todo 非多边形或多边形没在绘制
             if (that.currentC && !that.currentC["isDrawing"]) {  //非多边形
                 that.isReport = true;
             }
             this.updateAnchor();    // 图形发生变化需要更新描点信息
         } else {
+            // todo 鼠标未按下而多边形正则绘制的情况什么时候出现:mousedown后mouseup
             if (that.currentC && that.currentC["isDrawing"]) {
                 that.draw(x, y);    // 画多边形
+                // todo up后的锚点是在move时产生的
                 this.updateAnchor();    // 图形发生变化需要更新描点信息
             } else {
                 that.setMouseStyle(x, y);
@@ -1954,6 +1983,7 @@ DrawObj.prototype = {
     },
 
     doMousedown: function (that) {
+        console.log('downnnnn')
         var e = getEvent();
         that.isMouseDown = true;
         that.mouseDownX = e.clientX - that.canvas.getBoundingClientRect().left;
@@ -1990,6 +2020,7 @@ DrawObj.prototype = {
     },
 
     doMouseup: function (that) {
+        console.log('uppppp')
         var mouseUpX,
             mouseUpY,
             _e = getEvent(),
@@ -2023,6 +2054,7 @@ DrawObj.prototype = {
                         return;
                     }
                 }
+                // todo 在mousemove中生成了下一个节点
                 pointNum++;
                 that.currentC["coordinateNum"] = pointNum;
             }
@@ -2032,14 +2064,19 @@ DrawObj.prototype = {
 
     // 双击击事件，处理多边形的画图动作（闭合）
     doDblclick: function (that) {
+        console.log('clickkkkk')
         if (!that.currentC)return;
         if ("undefined" == that.currentC["isDrawing"]) return; //非多边形
+        // todo 没在绘制时，不必要进行操作
+        if (!that.currentC["isDrawing"]) return;
         that.currentC["isDrawing"] = false;
         that.isReport = true;
-        that.ReportDrawOjbParam();
-        // 删除最后一个点
+        // that.ReportDrawOjbParam();
+        // 删除最后一个点(todo 双击没有move,最后一个点可能不存在)
         delete that.currentC["map"]["PointX" + that.currentC["coordinateNum"]];
         delete that.currentC["map"]["PointY" + that.currentC["coordinateNum"]];
+        // todo 删除完之后上报
+        that.ReportDrawOjbParam();
 
         that.updateAnchor();  //绘图结束更新锚点信息
     },
